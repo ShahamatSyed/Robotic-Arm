@@ -1,0 +1,135 @@
+#include <Servo.h>
+
+// ----- Pins -----
+const int joy1X = A0;   // joystick 1 X
+const int joy1Y = A1;   // joystick 1 Y (FLIPPED)
+const int joy2X = A2;   // joystick 2 X
+const int joy3X = A4;   // joystick 3 X
+const int joy4Y = A5;   // joystick 4 Y
+const int buttonPin = 2;
+
+const int servoXPin   = 9;   // Servo 1 -> Joystick1 X
+const int servoYPin   = 10;  // Servo 2 -> Joystick1 Y (flipped)
+const int servo2XPin  = 8;   // Servo 3 -> Joystick2 X (flipped)
+const int servo3XPin  = 11;  // Servo 4 -> Joystick3 X (flipped)
+const int servo4YPin  = 12;  // Servo 5 -> Joystick4 Y
+
+// ----- Servos -----
+Servo servoX;
+Servo servoY;
+Servo servo2X;
+Servo servo3X;
+Servo servo4Y;
+
+int posX   = 90;
+int posY   = 90;
+int pos2X  = 90;
+int pos3X  = 90;
+int pos4Y  = 90;
+
+// ----- Joystick centers & deadzone -----
+int joy1XCenter = 512;
+int joy1YCenter = 512;
+int joy2XCenter = 512;
+int joy3XCenter = 512;
+int joy4YCenter = 512;
+const int deadzone = 50;
+
+// ----- Step control -----
+const int stepSize = 1;
+const unsigned long stepDelay = 20;
+unsigned long lastStepTime = 0;
+
+void calibrateCenters() {
+  long avg1X = 0, avg1Y = 0, avg2X = 0, avg3X = 0, avg4Y = 0;
+  for (int i = 0; i < 50; i++) {
+    avg1X += analogRead(joy1X);
+    avg1Y += analogRead(joy1Y);
+    avg2X += analogRead(joy2X);
+    avg3X += analogRead(joy3X);
+    avg4Y += analogRead(joy4Y);
+    delay(2);
+  }
+  joy1XCenter = avg1X / 50;
+  joy1YCenter = avg1Y / 50;
+  joy2XCenter = avg2X / 50;
+  joy3XCenter = avg3X / 50;
+  joy4YCenter = avg4Y / 50;
+}
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
+
+  servoX.attach(servoXPin);
+  servoY.attach(servoYPin);
+  servo2X.attach(servo2XPin);
+  servo3X.attach(servo3XPin);
+  servo4Y.attach(servo4YPin);
+
+  servoX.write(posX);
+  servoY.write(posY);
+  servo2X.write(pos2X);
+  servo3X.write(pos3X);
+  servo4Y.write(pos4Y);
+
+  calibrateCenters();
+}
+
+void loop() {
+  int x1Val = analogRead(joy1X);
+  int y1Val = analogRead(joy1Y);
+  int x2Val = analogRead(joy2X);
+  int x3Val = analogRead(joy3X);
+  int y4Val = analogRead(joy4Y);
+
+  int dx1 = x1Val - joy1XCenter;
+  int dy1 = y1Val - joy1YCenter;
+  int dx2 = x2Val - joy2XCenter;
+  int dx3 = x3Val - joy3XCenter;
+  int dy4 = y4Val - joy4YCenter;
+
+  unsigned long now = millis();
+  if (now - lastStepTime >= stepDelay) {
+    // ---- Servo on pin 9 (Joystick1 X, normal) ----
+    if (dx1 > deadzone) posX += stepSize;
+    else if (dx1 < -deadzone) posX -= stepSize;
+    posX = constrain(posX, 0, 180);
+    servoX.write(posX);
+
+    // ---- Servo on pin 10 (Joystick1 Y, FLIPPED) ----
+    if (dy1 > deadzone) posY -= stepSize;   // flipped!
+    else if (dy1 < -deadzone) posY += stepSize; // flipped!
+    posY = constrain(posY, 0, 180);
+    servoY.write(posY);
+
+    // ---- Servo on pin 8 (Joystick2 X, FLIPPED) ----
+    if (dx2 > deadzone) pos2X -= stepSize;
+    else if (dx2 < -deadzone) pos2X += stepSize;
+    pos2X = constrain(pos2X, 0, 180);
+    servo2X.write(pos2X);
+
+    // ---- Servo on pin 11 (Joystick3 X, FLIPPED) ----
+    if (dx3 > deadzone) pos3X -= stepSize;
+    else if (dx3 < -deadzone) pos3X += stepSize;
+    pos3X = constrain(pos3X, 0, 180);
+    servo3X.write(pos3X);
+
+    // ---- Servo on pin 12 (Joystick4 Y, NORMAL) ----
+    if (dy4 > deadzone) pos4Y += stepSize;
+    else if (dy4 < -deadzone) pos4Y -= stepSize;
+    pos4Y = constrain(pos4Y, 0, 180);
+    servo4Y.write(pos4Y);
+
+    lastStepTime = now;
+  }
+
+  // ---- Reset button ----
+  if (digitalRead(buttonPin) == LOW) {
+    posX = posY = pos2X = pos3X = pos4Y = 90;
+    servoX.write(posX);
+    servoY.write(posY);
+    servo2X.write(pos2X);
+    servo3X.write(pos3X);
+    servo4Y.write(pos4Y);
+  }
+}
