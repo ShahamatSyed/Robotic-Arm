@@ -1,5 +1,10 @@
 # Robotic-Arm
 A 3D-printed robotic arm powered by Arduino, 5 servo motors, and a 5V external supply. Controlled with 3 analog joysticks for intuitive multi-axis movement. Features custom CAD-designed parts, servo calibration, and optimized Arduino code for smooth, responsive control.
+
+
+https://github.com/user-attachments/assets/e8f512f6-6461-4eb3-a19b-5dd648083976
+
+
 ![PXL_20250913_180432671](https://github.com/user-attachments/assets/875ac47a-7369-4b4c-85be-16fdfc688c49)
 ![PXL_20250913_180437573](https://github.com/user-attachments/assets/b162f155-d7f6-460a-9364-cd05568b6c23)
 ![PXL_20250913_180506911](https://github.com/user-attachments/assets/30e1d27c-8b85-41ac-ae55-ac2e7b78a702)
